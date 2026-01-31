@@ -14,3 +14,16 @@ export type ColumnWidths = {
   description: number;
   author: number;
 };
+
+export type AppState = {
+  currentRepoPath: string | undefined;
+  commits: Commit[];
+  selectedCommitId: string | undefined;
+};
+
+export type ResizeState = {
+  resizing: boolean;
+  currentCol: keyof ColumnWidths | undefined;
+  startX: number;
+  startWidth: number;
+};

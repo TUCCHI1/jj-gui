@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import type { Commit } from "./types";
+import type { Commit, AppState } from "./types";
 import { parseJjLog } from "./parser";
 import { buildCommitHtml, buildEmptyStateHtml, buildErrorHtml, buildBranchHtml } from "./html";
 import { setupColumnResize } from "./column-resize";
@@ -17,9 +17,11 @@ const detailMessageInput = document.querySelector<HTMLTextAreaElement>("#detail-
 const mainElement = document.querySelector<HTMLElement>("#main");
 const logHeader = document.querySelector<HTMLElement>("#log-header");
 
-let currentRepoPath: string | undefined;
-let commits: Commit[] = [];
-let selectedCommitId: string | undefined;
+const state: AppState = {
+  currentRepoPath: undefined,
+  commits: [],
+  selectedCommitId: undefined,
+};
 
 const clearSelection = () => {
   for (const r of document.querySelectorAll(".commit-row")) {
@@ -40,14 +42,14 @@ const updateDetailElements = (commit: Commit) => {
 };
 
 const showDetail = (commit: Commit) => {
-  selectedCommitId = commit.id;
+  state.state.selectedCommitId = commit.id;
   updateDetailElements(commit);
   detailPanel?.classList.remove("hidden");
 };
 
 const handleCommitClick = (row: HTMLElement) => {
   const id = row.dataset.id;
-  const commit = commits.find((c) => c.id === id);
+  const commit = state.commits.find((c) => c.id === id);
   if (commit) showDetail(commit);
   clearSelection();
   row.classList.add("selected");
@@ -61,11 +63,11 @@ const attachCommitClickHandlers = () => {
 
 const renderCommits = () => {
   if (!logElement) return;
-  if (commits.length === 0) {
-    logElement.innerHTML = '<div class="empty">No commits</div>';
+  if (state.commits.length === 0) {
+    logElement.innerHTML = '<div class="empty">No state.commits</div>';
     return;
   }
-  const html = commits.map((commit, index) => buildCommitHtml(commit, index, commits.length)).join("");
+  const html = state.commits.map((commit, index) => buildCommitHtml(commit, index, state.commits.length)).join("");
   logElement.innerHTML = html;
   attachCommitClickHandlers();
 };
@@ -79,7 +81,7 @@ const resetSaveButtonLater = () => {
 };
 
 const updateLocalCommitMessage = (commitId: string, message: string) => {
-  const commit = commits.find((c) => c.id === commitId);
+  const commit = state.commits.find((c) => c.id === commitId);
   if (commit) commit.message = message;
 };
 
@@ -96,19 +98,19 @@ const handleSaveError = (error: unknown) => {
 };
 
 const saveDescription = async () => {
-  if (!currentRepoPath || !selectedCommitId || !detailMessageInput) return;
+  if (!state.currentRepoPath || !state.selectedCommitId || !detailMessageInput) return;
   const newMessage = detailMessageInput.value;
   updateSaveButtonText("Saving...");
   try {
-    await invoke("jj_describe", { repoPath: currentRepoPath, revision: selectedCommitId, message: newMessage });
-    handleSaveSuccess(selectedCommitId, newMessage);
+    await invoke("jj_describe", { repoPath: state.currentRepoPath, revision: state.selectedCommitId, message: newMessage });
+    handleSaveSuccess(state.selectedCommitId, newMessage);
   } catch (error) {
     handleSaveError(error);
   }
 };
 
 const collectBranches = (): Set<string> =>
-  new Set(commits.flatMap((commit) => commit.branches));
+  new Set(state.commits.flatMap((commit) => commit.branches));
 
 const renderBranches = () => {
   if (!branchesElement) return;
@@ -121,9 +123,9 @@ const renderBranches = () => {
 };
 
 const updateRepoName = () => {
-  if (!repoNameElement || !currentRepoPath) return;
-  repoNameElement.textContent = currentRepoPath.split("/").pop() ?? currentRepoPath;
-  repoNameElement.title = currentRepoPath;
+  if (!repoNameElement || !state.currentRepoPath) return;
+  repoNameElement.textContent = state.currentRepoPath.split("/").pop() ?? state.currentRepoPath;
+  repoNameElement.title = state.currentRepoPath;
 };
 
 const showEmptyState = () => {
@@ -135,15 +137,15 @@ const showError = (error: unknown) => {
 };
 
 const fetchAndDisplayLog = async () => {
-  if (!currentRepoPath) return;
-  const log = await invoke<string>("get_jj_log", { repoPath: currentRepoPath });
-  commits = parseJjLog(log);
+  if (!state.currentRepoPath) return;
+  const log = await invoke<string>("get_jj_log", { repoPath: state.currentRepoPath });
+  state.commits = parseJjLog(log);
   renderCommits();
   renderBranches();
 };
 
 const displayLog = async () => {
-  if (!currentRepoPath) {
+  if (!state.currentRepoPath) {
     showEmptyState();
     return;
   }
@@ -158,7 +160,7 @@ const displayLog = async () => {
 const openRepository = async () => {
   const selected = await open({ directory: true, multiple: false, title: "Open jj Repository" });
   if (!selected || typeof selected !== "string") return;
-  currentRepoPath = selected;
+  state.currentRepoPath = selected;
   saveLastRepo(selected);
   detailPanel?.classList.add("hidden");
   await displayLog();
@@ -166,7 +168,7 @@ const openRepository = async () => {
 
 const closeDetail = () => {
   detailPanel?.classList.add("hidden");
-  selectedCommitId = undefined;
+  state.selectedCommitId = undefined;
   clearSelection();
 };
 
@@ -201,7 +203,7 @@ if (mainElement && logHeader) {
 // Restore last opened repository
 const lastRepo = loadLastRepo();
 if (lastRepo) {
-  currentRepoPath = lastRepo;
+  state.currentRepoPath = lastRepo;
 }
 
 displayLog();

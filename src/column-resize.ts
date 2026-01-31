@@ -1,4 +1,4 @@
-import type { ColumnWidths } from "./types";
+import type { ColumnWidths, ResizeState } from "./types";
 
 const COLUMN_WIDTHS_KEY = "jj-gui:column-widths";
 
@@ -38,10 +38,12 @@ export const setupColumnResize = (mainElement: HTMLElement, logHeader: HTMLEleme
   const columnWidths = loadColumnWidths();
   applyColumnWidths(mainElement, columnWidths);
 
-  let resizing = false;
-  let currentCol: keyof ColumnWidths | undefined;
-  let startX = 0;
-  let startWidth = 0;
+  const resizeState: ResizeState = {
+    resizing: false,
+    currentCol: undefined,
+    startX: 0,
+    startWidth: 0,
+  };
 
   const isColumnKey = (value: string | undefined): value is keyof ColumnWidths =>
     value !== undefined && value in columnWidths;
@@ -54,10 +56,10 @@ export const setupColumnResize = (mainElement: HTMLElement, logHeader: HTMLEleme
     const col = target.dataset.col;
     if (!isColumnKey(col)) return;
 
-    resizing = true;
-    currentCol = col;
-    startX = event_.clientX;
-    startWidth = columnWidths[col];
+    resizeState.resizing = true;
+    resizeState.currentCol = col;
+    resizeState.startX = event_.clientX;
+    resizeState.startWidth = columnWidths[col];
 
     logHeader.classList.add("resizing");
     document.body.style.cursor = "col-resize";
@@ -67,20 +69,20 @@ export const setupColumnResize = (mainElement: HTMLElement, logHeader: HTMLEleme
   };
 
   const handleMouseMove = (event_: MouseEvent) => {
-    if (!resizing || !currentCol) return;
+    if (!resizeState.resizing || !resizeState.currentCol) return;
 
-    const diff = event_.clientX - startX;
-    const newWidth = Math.max(50, startWidth + diff);
+    const diff = event_.clientX - resizeState.startX;
+    const newWidth = Math.max(50, resizeState.startWidth + diff);
 
-    columnWidths[currentCol] = newWidth;
+    columnWidths[resizeState.currentCol] = newWidth;
     applyColumnWidths(mainElement, columnWidths);
   };
 
   const handleMouseUp = () => {
-    if (!resizing) return;
+    if (!resizeState.resizing) return;
 
-    resizing = false;
-    currentCol = undefined;
+    resizeState.resizing = false;
+    resizeState.currentCol = undefined;
     logHeader.classList.remove("resizing");
     document.body.style.cursor = "";
     document.body.style.userSelect = "";
