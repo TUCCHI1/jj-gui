@@ -7,7 +7,7 @@ import { setupColumnResize } from "./column-resize";
 import { saveLastRepo, loadLastRepo } from "./storage";
 
 const logElement = document.querySelector("#log");
-const repoNameElement = document.querySelector("#repo-name");
+const repoNameElement = document.querySelector<HTMLElement>("#repo-name");
 const branchesElement = document.querySelector("#branches");
 const openRepoButton = document.querySelector("#open-repo");
 const detailPanel = document.querySelector("#detail-panel");
@@ -42,7 +42,7 @@ const updateDetailElements = (commit: Commit) => {
 };
 
 const showDetail = (commit: Commit) => {
-  state.state.selectedCommitId = commit.id;
+  state.selectedCommitId = commit.id;
   updateDetailElements(commit);
   detailPanel?.classList.remove("hidden");
 };
@@ -64,7 +64,7 @@ const attachCommitClickHandlers = () => {
 const renderCommits = () => {
   if (!logElement) return;
   if (state.commits.length === 0) {
-    logElement.innerHTML = '<div class="empty">No state.commits</div>';
+    logElement.innerHTML = '<div class="empty">No commits</div>';
     return;
   }
   const html = state.commits.map((commit, index) => buildCommitHtml(commit, index, state.commits.length)).join("");
