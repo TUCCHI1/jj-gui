@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>jj GUI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div id="app">
+    <aside id="sidebar">
+      <div class="sidebar-header">
+        <button id="open-repo" title="Open repository">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h2.764c.958 0 1.76.56 2.311 1.184C7.985 3.648 8.48 4 9 4h4.5A1.5 1.5 0 0 1 15 5.5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12.5v-9z"/>
+          </svg>
+          <span id="repo-name">Open Repository</span>
+        </button>
+      </div>
+      <div class="sidebar-section">
+        <div class="section-title">Branches</div>
+        <div id="branches"></div>
+      </div>
+      <div class="sidebar-footer">
+        <button id="screenshot-btn" title="Take screenshot for debugging">📸 Debug</button>
+      </div>
+    </aside>
+
+    <main id="main">
+      <header id="log-header">
+        <span class="col-graph"></span>
+        <span class="col-change">Change<div class="resize-handle" data-col="change"></div></span>
+        <span class="col-branches">Branches<div class="resize-handle" data-col="branches"></div></span>
+        <span class="col-description">Description<div class="resize-handle" data-col="description"></div></span>
+        <span class="col-author">Author<div class="resize-handle" data-col="author"></div></span>
+        <span class="col-date">Date</span>
+      </header>
+      <div id="graph-container">
+        <div id="log"></div>
+      </div>
+    </main>
+
+    <aside id="detail-panel" class="hidden">
+      <div class="detail-header">
+        <span class="detail-id" id="detail-id"></span>
+        <button id="close-detail">×</button>
+      </div>
+      <div class="detail-content">
+        <div class="detail-row">
+          <span class="label">Author</span>
+          <span id="detail-author"></span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Date</span>
+          <span id="detail-date"></span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Description</span>
+          <textarea id="detail-message" rows="6" placeholder="Enter commit description..."></textarea>
+          <button id="save-message">Save Changes</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

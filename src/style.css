@@ -1,0 +1,550 @@
+@layer reset, base, components, utilities;
+
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+}
+
+@layer base {
+  :root {
+    /* OKLCH colors for better perceptual uniformity */
+    --bg-base: oklch(0.25 0.02 270);
+    --bg-surface: oklch(0.22 0.02 270);
+    --bg-overlay: oklch(0.32 0.02 270);
+    --bg-hover: oklch(0.38 0.02 270);
+    --border: oklch(0.38 0.02 270);
+
+    --text: oklch(0.9 0.02 270);
+    --text-dim: oklch(0.55 0.02 270);
+    --text-bright: oklch(0.97 0 0);
+
+    --blue: oklch(0.75 0.15 250);
+    --green: oklch(0.8 0.15 145);
+    --mauve: oklch(0.75 0.15 310);
+    --peach: oklch(0.8 0.12 55);
+    --red: oklch(0.7 0.18 15);
+    --teal: oklch(0.82 0.1 180);
+    --yellow: oklch(0.9 0.1 90);
+
+    --radius-sm: 4px;
+    --radius: 6px;
+    --radius-lg: 8px;
+
+    --row-height: 44px;
+    --sidebar-width: 200px;
+    --detail-width: 280px;
+
+    --font-mono: "JetBrains Mono", "SF Mono", Monaco, monospace;
+    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+    --transition-fast: 0.1s ease;
+    --transition: 0.15s ease;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.5;
+    background: var(--bg-base);
+    color: var(--text);
+    block-size: 100dvh;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  /* App Layout */
+  #app {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr var(--detail-width);
+    block-size: 100dvh;
+
+    &:has(#detail-panel.hidden) {
+      grid-template-columns: var(--sidebar-width) 1fr;
+    }
+  }
+
+  /* Sidebar */
+  #sidebar {
+    background: var(--bg-surface);
+    border-inline-end: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    .sidebar-header {
+      padding: 16px;
+      border-block-end: 1px solid var(--border);
+    }
+
+    .sidebar-section {
+      padding: 16px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .sidebar-footer {
+      padding: 12px;
+      border-block-start: 1px solid var(--border);
+    }
+  }
+
+  #open-repo {
+    inline-size: 100%;
+    background: var(--bg-overlay);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 10px 12px;
+    cursor: pointer;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    transition: background var(--transition), border-color var(--transition);
+
+    &:hover {
+      background: var(--bg-hover);
+      border-color: var(--blue);
+    }
+  }
+
+  #repo-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: start;
+  }
+
+  .section-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-block-end: 12px;
+  }
+
+  .branch-item {
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+    transition: background var(--transition);
+
+    &:hover {
+      background: var(--bg-overlay);
+    }
+
+    &::before {
+      content: "";
+      inline-size: 6px;
+      block-size: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+    }
+  }
+
+  #screenshot-btn {
+    inline-size: 100%;
+    background: var(--bg-overlay);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px;
+    color: var(--text-dim);
+    font-size: 12px;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+
+    &:hover {
+      background: var(--bg-hover);
+      color: var(--text);
+    }
+  }
+
+  /* Main Graph Area */
+  #main {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg-base);
+  }
+
+  #graph-container {
+    flex: 1;
+    overflow: auto;
+    scrollbar-gutter: stable;
+  }
+
+  #log {
+    min-block-size: 100%;
+  }
+
+  /* Log Header */
+  #log-header {
+    display: grid;
+    grid-template-columns: var(--col-graph, 60px) var(--col-change, 80px) var(--col-branches, 120px) var(--col-description, 1fr) var(--col-author, 150px) var(--col-date, 90px);
+    align-items: center;
+    gap: 12px;
+    block-size: 36px;
+    padding-inline: 20px;
+    padding-inline-end: 32px;
+    background: var(--bg-surface);
+    border-block-end: 1px solid var(--border);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    > span {
+      position: relative;
+      user-select: none;
+      text-align: start;
+    }
+  }
+
+  .resize-handle {
+    position: absolute;
+    inset-inline-end: -6px;
+    inset-block-start: 0;
+    inline-size: 12px;
+    block-size: 100%;
+    cursor: col-resize;
+    z-index: 10;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset-inline-start: 5px;
+      inset-block-start: 25%;
+      inline-size: 2px;
+      block-size: 50%;
+      background: var(--border);
+      border-radius: 1px;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    &:hover::after {
+      opacity: 1;
+    }
+  }
+
+  #log-header.resizing .resize-handle::after {
+    opacity: 1;
+    background: var(--blue);
+  }
+
+  /* Commit Rows */
+  .commit-row {
+    display: grid;
+    grid-template-columns: var(--col-graph, 60px) var(--col-change, 80px) var(--col-branches, 120px) var(--col-description, 1fr) var(--col-author, 150px) var(--col-date, 90px);
+    align-items: center;
+    gap: 12px;
+    block-size: var(--row-height);
+    padding-inline: 20px;
+    padding-inline-end: 32px;
+    cursor: pointer;
+    border-inline-start: 3px solid transparent;
+    overflow: hidden;
+
+    > * {
+      text-align: start;
+    }
+
+    &:hover {
+      background: var(--bg-overlay);
+    }
+
+    &.selected {
+      background: var(--bg-overlay);
+      border-inline-start-color: var(--blue);
+    }
+  }
+
+  .graph-cell {
+    position: relative;
+    block-size: var(--row-height);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .node {
+    inline-size: 12px;
+    block-size: 12px;
+    border-radius: 50%;
+    background: var(--blue);
+    border: 2px solid var(--bg-surface);
+    z-index: 1;
+    flex-shrink: 0;
+
+    &.working {
+      background: var(--green);
+      inline-size: 14px;
+      block-size: 14px;
+      box-shadow: 0 0 0 4px color-mix(in oklch, var(--green) 20%, transparent);
+    }
+
+    &.immutable {
+      background: var(--text-dim);
+    }
+  }
+
+  .graph-line {
+    position: absolute;
+    inset-inline-start: calc(50% - 1px);
+    inline-size: 2px;
+    background: var(--border);
+
+    &.top {
+      inset-block-start: 0;
+      block-size: calc(50% - 6px);
+    }
+
+    &.bottom {
+      inset-block-end: 0;
+      block-size: calc(50% - 6px);
+    }
+  }
+
+  .commit-id {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--blue);
+    background: color-mix(in oklch, var(--blue) 10%, transparent);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .commit-branches {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-inline-size: 0;
+    overflow: hidden;
+  }
+
+  .commit-message {
+    font-size: 13px;
+    color: var(--text-bright);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-inline-size: 0;
+    text-align: start;
+
+    &.empty {
+      color: var(--text-dim);
+    }
+  }
+
+  .commit-branch {
+    background: linear-gradient(135deg, var(--mauve), var(--blue));
+    color: var(--bg-base);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    max-inline-size: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .commit-author,
+  .commit-date {
+    font-size: 12px;
+    color: var(--text-dim);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Detail Panel */
+  #detail-panel {
+    background: var(--bg-surface);
+    border-inline-start: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    &.hidden {
+      display: none;
+    }
+  }
+
+  .detail-header {
+    padding: 16px 20px;
+    border-block-end: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .detail-id {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--blue);
+    font-weight: 600;
+  }
+
+  #close-detail {
+    background: var(--bg-overlay);
+    border: none;
+    color: var(--text-dim);
+    inline-size: 28px;
+    block-size: 28px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition), color var(--transition);
+
+    &:hover {
+      background: var(--bg-hover);
+      color: var(--text);
+    }
+  }
+
+  .detail-content {
+    padding: 20px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .detail-row {
+    margin-block-end: 20px;
+
+    .label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-block-end: 8px;
+    }
+
+    span:not(.label) {
+      color: var(--text);
+      font-size: 13px;
+    }
+  }
+
+  #detail-message {
+    inline-size: 100%;
+    min-block-size: 120px;
+    background: var(--bg-base);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.6;
+    padding: 12px;
+    resize: vertical;
+    font-family: inherit;
+    transition: border-color var(--transition);
+
+    &:focus {
+      outline: none;
+      border-color: var(--blue);
+    }
+
+    &::placeholder {
+      color: var(--text-dim);
+    }
+  }
+
+  #save-message {
+    inline-size: 100%;
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    color: var(--bg-base);
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-block-start: 12px;
+    transition: opacity var(--transition);
+
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+
+}
+
+/* Scoped styles for #log container */
+@scope (#log) {
+  /* Empty State - only applies inside #log */
+  .empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-block-size: 100%;
+    color: var(--text-dim);
+    gap: 16px;
+    padding: 40px;
+
+    svg {
+      opacity: 0.4;
+    }
+
+    span {
+      font-size: 14px;
+    }
+  }
+
+  /* Error State - only applies inside #log */
+  .error {
+    color: var(--red);
+    background: color-mix(in oklch, var(--red) 10%, transparent);
+    padding: 16px 20px;
+    margin: 20px;
+    border-radius: var(--radius-lg);
+    border: 1px solid color-mix(in oklch, var(--red) 20%, transparent);
+    font-size: 13px;
+  }
+}
+
+@layer utilities {
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    inline-size: 8px;
+    block-size: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--bg-hover);
+    border-radius: var(--radius-sm);
+
+    &:hover {
+      background: var(--text-dim);
+    }
+  }
+}
