@@ -17,7 +17,7 @@
     "@playwright/test": "^1.58.1",
     "@tauri-apps/api": "^2.9.1",
     "@tauri-apps/cli": "^2.9.6",
-    "@tucchi-/eslint-config": "^1.9.0",
+    "@tucchi-/eslint-config": "^1.10.0",
     "@types/bun": "latest",
     "eslint": "^9.39.2",
     "eslint-plugin-project-structure": "^3.14.2",
